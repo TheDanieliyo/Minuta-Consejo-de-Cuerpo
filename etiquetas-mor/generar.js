@@ -69,6 +69,11 @@ html, body { background: transparent; }
 .s2 .num.cien { font-size: 15.5pt; }
 .s2 .num.cien .pct { font-size: 7.5pt; margin-top: .8mm; }
 .s2 .palabra { font-size: 12pt; margin-top: 1.1mm; }
+/* "CON" a la misma distancia de "Pruébame" que de "CAFÉ" */
+.en.con { margin-top: 1.5mm; }
+.en.con + .palabra { margin-top: 1mm; }
+.s2 .en.con { margin-top: .8mm; }
+.s2 .en.con + .palabra { margin-top: .8mm; }
 .s2 .div { gap: .6mm; margin-top: .6mm; }
 .s2 .div i { width: 2.8mm; border-top-width: .12mm; }
 .s2 .marca { font-size: 4.2pt; margin-top: .45mm; }
@@ -77,7 +82,7 @@ html, body { background: transparent; }
 function etiqueta(p, k, tam = 3) {
   const s = ESTILOS[k](p);
   const centro = p === 'cafe'
-    ? `<div class="en" style="color:${s.sub}">CON</div>
+    ? `<div class="en con" style="color:${s.sub}">CON</div>
   <div class="palabra" style="color:${s.main}">CAFÉ</div>`
     : `<div class="en" style="color:${s.sub}">EN</div>
   <div class="num${p === 100 ? ' cien' : ''}" style="color:${s.main}">${p}<span class="pct">%</span></div>`;
