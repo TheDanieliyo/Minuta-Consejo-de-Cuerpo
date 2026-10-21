@@ -1,4 +1,4 @@
-// Genera las etiquetas MOR "Pruébame en X%" (3 x 3 cm, esquinas redondeadas).
+// Genera las etiquetas MOR "Pruébame en X%" y "Pruébame con café" (3 x 3 cm y 2 x 2 cm, esquinas redondeadas).
 // Uso: node generar.js   (requiere playwright con Chromium)
 const path = require('path');
 const fs = require('fs');
@@ -19,6 +19,7 @@ const C = {
 };
 
 const PORCENTAJES = [55, 66, 85, 100];
+const DISENOS = [...PORCENTAJES, 'cafe']; // 'cafe' = "Pruébame con café"
 
 // Cada estilo define colores por porcentaje: fondo, texto principal, texto secundario, corazón, filete
 const ESTILOS = {
@@ -29,6 +30,7 @@ const ESTILOS = {
     66: { bg: C.blush, main: '#8A5A50', sub: C.cafe, heart: '#B97F72', line: '#8A5A50' },
     85: { bg: C.malva, main: C.crema, sub: '#F6E9DD', heart: '#EBC0B3', line: C.crema },
     100: { bg: C.cacao, main: C.crema, sub: '#EADBCB', heart: C.rosa, line: '#D9BFAF' },
+    cafe: { bg: C.cafe, main: C.crema, sub: '#EADBCB', heart: C.rosa, line: '#D9BFAF' },
   })[p],
 };
 
@@ -56,16 +58,34 @@ html, body { background: transparent; }
 .div { display: flex; align-items: center; gap: .9mm; margin-top: 1mm; }
 .div i { display: block; width: 4.2mm; height: 0; border-top: .15mm solid; }
 .marca { font-family: 'Cormorant'; font-weight: 700; font-size: 6pt; letter-spacing: .28em; margin: .7mm 0 0 .28em; line-height: 1; }
+.palabra { font-family: 'Cormorant'; font-weight: 700; font-size: 22pt; line-height: .95; margin-top: -.6mm; }
+/* Versión 2 x 2 cm */
+.label.s2 { width: 20mm; height: 20mm; border-radius: 3mm; }
+.s2 .frame { inset: 1.1mm; border-width: .15mm; border-radius: 2mm; }
+.s2 .prueba { font-size: 7.2pt; margin-top: .4mm; }
+.s2 .en { font-size: 3.4pt; font-weight: 600; letter-spacing: .4em; margin: .5mm 0 0 .4em; }
+.s2 .num { font-size: 18.5pt; }
+.s2 .num .pct { font-size: 9pt; margin-left: .2mm; margin-top: 1mm; }
+.s2 .num.cien { font-size: 15.5pt; }
+.s2 .num.cien .pct { font-size: 7.5pt; margin-top: .8mm; }
+.s2 .palabra { font-size: 15pt; margin-top: -.4mm; }
+.s2 .div { gap: .6mm; margin-top: .6mm; }
+.s2 .div i { width: 2.8mm; border-top-width: .12mm; }
+.s2 .marca { font-size: 4.2pt; margin-top: .45mm; }
 `;
 
-function etiqueta(p, k) {
+function etiqueta(p, k, tam = 3) {
   const s = ESTILOS[k](p);
-  return `<div class="label" style="background:${s.bg}">
+  const centro = p === 'cafe'
+    ? `<div class="en" style="color:${s.sub}">CON</div>
+  <div class="palabra" style="color:${s.main}">café</div>`
+    : `<div class="en" style="color:${s.sub}">EN</div>
+  <div class="num${p === 100 ? ' cien' : ''}" style="color:${s.main}">${p}<span class="pct">%</span></div>`;
+  return `<div class="label${tam === 2 ? ' s2' : ''}" style="background:${s.bg}">
   <div class="frame" style="border-color:${s.line}"></div>
   <div class="prueba" style="color:${s.main}">Pruébame</div>
-  <div class="en" style="color:${s.sub}">EN</div>
-  <div class="num${p === 100 ? ' cien' : ''}" style="color:${s.main}">${p}<span class="pct">%</span></div>
-  <div class="div" style="color:${s.line}"><i></i>${heart(s.heart, 1.6)}<i></i></div>
+  ${centro}
+  <div class="div" style="color:${s.line}"><i></i>${heart(s.heart, tam === 2 ? 1.1 : 1.6)}<i></i></div>
   <div class="marca" style="color:${s.main}">MOR</div>
 </div>`;
 }
@@ -89,21 +109,25 @@ function hoja(items, titulo) {
   const page = await browser.newPage({ deviceScaleFactor: 600 / 96 }); // PNG a 600 dpi
 
   for (const k of Object.keys(ESTILOS)) {
-    for (const p of PORCENTAJES) {
-      const nombre = `MOR-pruebame-${p}-${k}`;
-      await page.setContent(pagina(etiqueta(p, k), '@page { size: 30mm 30mm; margin: 0; }'), { waitUntil: 'networkidle' });
-      await page.evaluate(() => document.fonts.ready);
-      await page.pdf({ path: path.join(OUT, 'pdf', nombre + '.pdf'), width: '30mm', height: '30mm', printBackground: true, pageRanges: '1' });
-      await page.locator('.label').screenshot({ path: path.join(OUT, 'png', nombre + '.png'), omitBackground: true });
+    for (const p of DISENOS) {
+      const nombre = `MOR-pruebame-${p === 'cafe' ? 'con-cafe' : p}-${k}`;
+      for (const tam of [3, 2]) {
+        const mm = tam * 10 + 'mm';
+        const archivo = `${nombre}-${tam}x${tam}cm`;
+        await page.setContent(pagina(etiqueta(p, k, tam), `@page { size: ${mm} ${mm}; margin: 0; }`), { waitUntil: 'networkidle' });
+        await page.evaluate(() => document.fonts.ready);
+        await page.pdf({ path: path.join(OUT, 'pdf', archivo + '.pdf'), width: mm, height: mm, printBackground: true, pageRanges: '1' });
+        await page.locator('.label').screenshot({ path: path.join(OUT, 'png', archivo + '.png'), omitBackground: true });
+      }
 
-      await page.setContent(hoja(Array(35).fill(etiqueta(p, k)), `MOR · PRUÉBAME EN ${p}% · ${k.toUpperCase()} · 35 × (3 × 3 cm)`), { waitUntil: 'networkidle' });
+      await page.setContent(hoja(Array(35).fill(etiqueta(p, k)), `MOR · PRUÉBAME ${p === 'cafe' ? 'CON CAFÉ' : `EN ${p}%`} · ${k.toUpperCase()} · 35 × (3 × 3 cm)`), { waitUntil: 'networkidle' });
       await page.evaluate(() => document.fonts.ready);
       await page.pdf({ path: path.join(OUT, 'hojas-a4', `A4-${nombre}.pdf`), width: '210mm', height: '297mm', printBackground: true });
     }
   }
 
   // Muestrario con todos los diseños (una fila por estilo)
-  const filas = Object.keys(ESTILOS).map((k) => PORCENTAJES.map((p) => etiqueta(p, k)).join('') + '<div></div>');
+  const filas = Object.keys(ESTILOS).map((k) => DISENOS.map((p) => etiqueta(p, k)).join(''));
   await page.setContent(hoja(filas, 'MOR · MUESTRARIO PRUÉBAME · CREMA / MALVA / INTENSIDAD'), { waitUntil: 'networkidle' });
   await page.evaluate(() => document.fonts.ready);
   await page.pdf({ path: path.join(OUT, 'MOR-muestrario.pdf'), width: '210mm', height: '297mm', printBackground: true });
@@ -122,6 +146,19 @@ function hoja(items, titulo) {
   await page.pdf({ path: path.join(OUT, 'MOR-hoja-A4-54-etiquetas.pdf'), width: '210mm', height: '297mm', printBackground: true });
   await page.setViewportSize({ width: 794, height: 1123 });
   await page.screenshot({ path: path.join(OUT, 'MOR-hoja-A4-54-etiquetas.png'), fullPage: false });
+
+  // Hoja A4 compacta 2 x 2 cm: 9 x 13 = 117 etiquetas, 2 mm entre ellas
+  // (4 filas Crema, 4 Malva, 5 Intensidad; se alternan 55 → 66 → 85 → 100 → con café)
+  const filasPorEstilo = { crema: 4, malva: 4, intensidad: 5 };
+  const compacta2 = Object.keys(ESTILOS).flatMap((k) =>
+    Array.from({ length: filasPorEstilo[k] * 9 }, (_, i) => etiqueta(DISENOS[i % 5], k, 2)));
+  await page.setContent(pagina(`<div class="grid">${compacta2.join('')}</div>`, `
+  @page { size: 210mm 297mm; margin: 0; }
+  body { width: 210mm; height: 297mm; background: #fff; display: flex; align-items: center; justify-content: center; }
+  .grid { display: grid; grid-template-columns: repeat(9, 20mm); gap: 2mm; }`), { waitUntil: 'networkidle' });
+  await page.evaluate(() => document.fonts.ready);
+  await page.pdf({ path: path.join(OUT, 'MOR-hoja-A4-117-etiquetas-2x2.pdf'), width: '210mm', height: '297mm', printBackground: true });
+  await page.screenshot({ path: path.join(OUT, 'MOR-hoja-A4-117-etiquetas-2x2.png'), fullPage: false });
 
   await browser.close();
 })();
