@@ -58,7 +58,7 @@ html, body { background: transparent; }
 .div { display: flex; align-items: center; gap: .9mm; margin-top: 1mm; }
 .div i { display: block; width: 4.2mm; height: 0; border-top: .15mm solid; }
 .marca { font-family: 'Cormorant'; font-weight: 700; font-size: 6pt; letter-spacing: .28em; margin: .7mm 0 0 .28em; line-height: 1; }
-.palabra { font-family: 'Cormorant'; font-weight: 700; font-size: 20pt; line-height: 1; letter-spacing: .06em; margin: 1.6mm 0 0 .06em; }
+.palabra { font-family: 'Cormorant'; font-weight: 700; font-size: 18pt; line-height: 1; letter-spacing: .08em; margin: 1.6mm 0 0 .08em; }
 /* Versión 2 x 2 cm */
 .label.s2 { width: 20mm; height: 20mm; border-radius: 3mm; }
 .s2 .frame { inset: 1.1mm; border-width: .15mm; border-radius: 2mm; }
@@ -68,7 +68,7 @@ html, body { background: transparent; }
 .s2 .num .pct { font-size: 9pt; margin-left: .2mm; margin-top: 1mm; }
 .s2 .num.cien { font-size: 15.5pt; }
 .s2 .num.cien .pct { font-size: 7.5pt; margin-top: .8mm; }
-.s2 .palabra { font-size: 13.5pt; margin-top: 1.1mm; }
+.s2 .palabra { font-size: 12pt; margin-top: 1.1mm; }
 .s2 .div { gap: .6mm; margin-top: .6mm; }
 .s2 .div i { width: 2.8mm; border-top-width: .12mm; }
 .s2 .marca { font-size: 4.2pt; margin-top: .45mm; }
@@ -78,7 +78,7 @@ function etiqueta(p, k, tam = 3) {
   const s = ESTILOS[k](p);
   const centro = p === 'cafe'
     ? `<div class="en" style="color:${s.sub}">CON</div>
-  <div class="palabra" style="color:${s.main}">café</div>`
+  <div class="palabra" style="color:${s.main}">CAFÉ</div>`
     : `<div class="en" style="color:${s.sub}">EN</div>
   <div class="num${p === 100 ? ' cien' : ''}" style="color:${s.main}">${p}<span class="pct">%</span></div>`;
   return `<div class="label${tam === 2 ? ' s2' : ''}" style="background:${s.bg}">
