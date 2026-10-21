@@ -110,5 +110,18 @@ function hoja(items, titulo) {
   await page.setViewportSize({ width: 794, height: 520 });
   await page.screenshot({ path: path.join(OUT, 'MOR-muestrario.png'), clip: { x: 0, y: 0, width: 794, height: 500 } });
 
+  // Hoja A4 compacta: 6 x 9 = 54 etiquetas, 2 mm entre ellas, todos los diseños
+  // (3 filas por estilo; los porcentajes se van alternando 55 → 66 → 85 → 100)
+  const compacta = Object.keys(ESTILOS).flatMap((k) =>
+    Array.from({ length: 18 }, (_, i) => etiqueta(PORCENTAJES[i % 4], k)));
+  await page.setContent(pagina(`<div class="grid">${compacta.join('')}</div>`, `
+  @page { size: 210mm 297mm; margin: 0; }
+  body { width: 210mm; height: 297mm; background: #fff; display: flex; align-items: center; justify-content: center; }
+  .grid { display: grid; grid-template-columns: repeat(6, 30mm); gap: 2mm; }`), { waitUntil: 'networkidle' });
+  await page.evaluate(() => document.fonts.ready);
+  await page.pdf({ path: path.join(OUT, 'MOR-hoja-A4-54-etiquetas.pdf'), width: '210mm', height: '297mm', printBackground: true });
+  await page.setViewportSize({ width: 794, height: 1123 });
+  await page.screenshot({ path: path.join(OUT, 'MOR-hoja-A4-54-etiquetas.png'), fullPage: false });
+
   await browser.close();
 })();
