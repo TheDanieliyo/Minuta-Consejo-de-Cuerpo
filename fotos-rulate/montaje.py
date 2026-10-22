@@ -32,12 +32,12 @@ scene = cv2.imread(UP + '6ea1270b-image.jpg').astype(np.float32)
 SH, SW = scene.shape[:2]
 
 # Tamaño y posición de la barra en la escena
-bh = 410
+bh = 520
 bw = int(round(bh * W / H))
-cx, base_y = 590, 872
+cx, base_y = 554, 915
 lean = 0.035  # la parte de arriba un poco más angosta (perspectiva / ligera inclinación)
-thick = 16    # grosor visible del lateral derecho
-top_th = 5    # grosor visible del borde superior
+thick = 20    # grosor visible del lateral derecho
+top_th = 6    # grosor visible del borde superior
 
 fl = (cx - bw / 2, base_y)
 fr = (cx + bw / 2, base_y)
